@@ -1,8 +1,6 @@
 {
-  "name": "jantaodev/fifa-api",
-  "description": "A FIFA API implementation written in PHP that gets matches information",
+  "description": "A simple api.fifa.com implementation written in PHP that gets matches information",
   "keywords": [
-    "FIFA",
     "API",
     "WorldCup",
     "Soccer",
