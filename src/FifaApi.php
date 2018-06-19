@@ -10,6 +10,7 @@ namespace JantaoDev\FifaApi;
 use GuzzleHttp\Client;
 use JantaoDev\FifaApi\Model\Competition;
 use JantaoDev\FifaApi\Model\Event\Booking;
+use JantaoDev\FifaApi\Model\Event\Event;
 use JantaoDev\FifaApi\Model\Event\Goal;
 use JantaoDev\FifaApi\Model\Event\Substitution;
 use JantaoDev\FifaApi\Model\Match;
@@ -223,7 +224,7 @@ class FifaApi
         $goal
             ->setId(intval($goalInfo->IdGoal))
             ->setMatchTime($goalInfo->Minute)
-            ->setPlayer($players[intval($goalInfo->IdPlayerOn)] ?? null)
+            ->setPlayer($players[intval($goalInfo->IdPlayer)] ?? null)
             ->setGoal(intval($goalInfo->Type))
         ;
         return $goal;
@@ -234,9 +235,9 @@ class FifaApi
      */
     protected function sortEvents(array &$events)
     {
-        uasort($events, function ($a, $b) {
-            $aa = array_map('intval', explode('+', preg_replace('[^0-9\+]', '', $a)));
-            $bb = array_map('intval', explode('+', preg_replace('[^0-9\+]', '', $b)));
+        uasort($events, function (Event $a, Event $b) {
+            $aa = array_map('intval', explode('+', preg_replace('[^0-9\+]', '', $a->getMatchTime())));
+            $bb = array_map('intval', explode('+', preg_replace('[^0-9\+]', '', $b->getMatchTime())));
             if ($aa[0] == $bb[0]) {
                 $aa[1] = $aa[1] ?? 0;
                 $bb[1] = $bb[1] ?? 0;
@@ -257,27 +258,27 @@ class FifaApi
     {
         $match = new Match();
 
-        $homeTeam = $this->extractTeam($matchInfo->Home);
-        $awayTeam = $this->extractTeam($matchInfo->Away);
+        $homeTeam = $this->extractTeam($matchInfo->HomeTeam);
+        $awayTeam = $this->extractTeam($matchInfo->AwayTeam);
 
         $players = [];
-        foreach ($matchInfo->Home->Players as $playerInfo) {
+        foreach ($matchInfo->HomeTeam->Players as $playerInfo) {
             $player = $this->extractPlayer($playerInfo, $homeTeam);
             $players[$player->getId()] = $player;
         }
-        foreach ($matchInfo->Away->Players as $playerInfo) {
+        foreach ($matchInfo->AwayTeam->Players as $playerInfo) {
             $player = $this->extractPlayer($playerInfo, $awayTeam);
             $players[$player->getId()] = $player;
         }
 
         $events = [];
-        foreach (array_merge($matchInfo->Home->Booking, $matchInfo->Away->Booking) as $bookingInfo) {
+        foreach (array_merge($matchInfo->HomeTeam->Bookings, $matchInfo->AwayTeam->Bookings) as $bookingInfo) {
             $events[] = $this->extractBookingEvent($bookingInfo, $players);
         }
-        foreach (array_merge($matchInfo->Home->Substitution, $matchInfo->Away->Substitution) as $substitutionInfo) {
+        foreach (array_merge($matchInfo->HomeTeam->Substitutions, $matchInfo->AwayTeam->Substitutions) as $substitutionInfo) {
             $events[] = $this->extractSubstitutionEvent($substitutionInfo, $players);
         }
-        foreach (array_merge($matchInfo->Home->Goal, $matchInfo->Away->Goal) as $goalInfo) {
+        foreach (array_merge($matchInfo->HomeTeam->Goals, $matchInfo->AwayTeam->Goals) as $goalInfo) {
             $events[] = $this->extractGoalEvent($goalInfo, $players);
         }
         $this->sortEvents($events);
@@ -288,9 +289,9 @@ class FifaApi
             ->setStageId(intval($matchInfo->IdStage))
             ->setCompetitionId(intval($matchInfo->IdCompetition))
             ->setAwayTeam($awayTeam)
-            ->setAwayTeamScore(intval($matchInfo->AwayTeamScore))
+            ->setAwayTeamScore(intval($matchInfo->AggregateAwayTeamScore))
             ->setHomeTeam($homeTeam)
-            ->setHomeTeamScore(intval($matchInfo->HomeTeamScore))
+            ->setHomeTeamScore(intval($matchInfo->AggregateHomeTeamScore))
             ->setDate(new \DateTime($matchInfo->Date))
             ->setLocalDate(new \DateTime($matchInfo->LocalDate))
             ->setStadium($this->extractLocalizedString($matchInfo->Stadium->Name))
@@ -337,19 +338,19 @@ class FifaApi
         }
 
         $newEvents = [];
-        foreach (array_merge($matchInfo->Home->Booking, $matchInfo->Away->Booking) as $bookingInfo) {
+        foreach (array_merge($matchInfo->HomeTeam->Bookings, $matchInfo->AwayTeam->Bookings) as $bookingInfo) {
             if (in_array(intval($bookingInfo->IdEvent), $bookingIds)) {
                 continue;
             }
             $newEvents[] = $this->extractBookingEvent($bookingInfo, $match->getPlayers());
         }
-        foreach (array_merge($matchInfo->Home->Substitution, $matchInfo->Away->Substitution) as $substitutionInfo) {
+        foreach (array_merge($matchInfo->HomeTeam->Substitutions, $matchInfo->AwayTeam->Substitutions) as $substitutionInfo) {
             if (in_array(intval($substitutionInfo->IdEvent), $substitutionIds)) {
                 continue;
             }
             $newEvents[] = $this->extractSubstitutionEvent($substitutionInfo, $match->getPlayers());
         }
-        foreach (array_merge($matchInfo->Home->Goal, $matchInfo->Away->Goal) as $goalInfo) {
+        foreach (array_merge($matchInfo->HomeTeam->Goals, $matchInfo->AwayTeam->Goals) as $goalInfo) {
             if (in_array(intval($goalInfo->IdGoal), $goalIds)) {
                 continue;
             }
@@ -361,8 +362,8 @@ class FifaApi
         $this->sortEvents($events);
 
         $match
-            ->setAwayTeamScore(intval($matchInfo->AwayTeamScore))
-            ->setHomeTeamScore(intval($matchInfo->HomeTeamScore))
+            ->setAwayTeamScore(intval($matchInfo->AggregateAwayTeamScore))
+            ->setHomeTeamScore(intval($matchInfo->AggregateHomeTeamScore))
             ->setStatus(intval($matchInfo->MatchStatus))
             ->setEvents($events)
             ->setMatchTime($matchInfo->MatchTime)
