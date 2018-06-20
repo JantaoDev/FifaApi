@@ -332,21 +332,21 @@ class FifaApi
 
         $newEvents = [];
         foreach (array_merge($matchInfo->HomeTeam->Bookings, $matchInfo->AwayTeam->Bookings) as $bookingInfo) {
-            $hash = "JantaoDev\\Model\\Event\\Booking{$bookingInfo->IdEvent}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
+            $hash = "JantaoDev\\FifaApi\\Model\\Event\\Booking{$bookingInfo->IdEvent}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
             if (in_array($hash, $eventHashes)) {
                 continue;
             }
             $newEvents[] = $this->extractBookingEvent($bookingInfo, $match->getPlayers());
         }
         foreach (array_merge($matchInfo->HomeTeam->Substitutions, $matchInfo->AwayTeam->Substitutions) as $substitutionInfo) {
-            $hash = "JantaoDev\\Model\\Event\\Substitution{$bookingInfo->IdEvent}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
+            $hash = "JantaoDev\\FifaApi\\Model\\Event\\Substitution{$substitutionInfo->IdEvent}{$substitutionInfo->IdPlayerOn}{$substitutionInfo->Minute}";
             if (in_array($hash, $eventHashes)) {
                 continue;
             }
             $newEvents[] = $this->extractSubstitutionEvent($substitutionInfo, $match->getPlayers());
         }
         foreach (array_merge($matchInfo->HomeTeam->Goals, $matchInfo->AwayTeam->Goals) as $goalInfo) {
-            $hash = "JantaoDev\\Model\\Event\\Goal{$bookingInfo->IdGoal}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
+            $hash = "JantaoDev\\FifaApi\\Model\\Event\\Goal{$goalInfo->IdGoal}{$goalInfo->IdPlayer}{$goalInfo->Minute}";
             if (in_array($hash, $eventHashes)) {
                 continue;
             }
