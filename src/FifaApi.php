@@ -187,7 +187,7 @@ class FifaApi
     {
         $booking = new Booking();
         $booking
-            ->setId(intval($bookingInfo->IdEvent))
+            ->setId($bookingInfo->IdEvent)
             ->setMatchTime($bookingInfo->Minute)
             ->setCard(intval($bookingInfo->Card))
             ->setPlayer($players[intval($bookingInfo->IdPlayer)] ?? null)
@@ -204,7 +204,7 @@ class FifaApi
     {
         $substitution = new Substitution();
         $substitution
-            ->setId(intval($substitutionInfo->IdEvent))
+            ->setId($substitutionInfo->IdEvent)
             ->setMatchTime($substitutionInfo->Minute)
             ->setPlayer($players[intval($substitutionInfo->IdPlayerOn)] ?? null)
             ->setPlayerOff($players[intval($substitutionInfo->IdPlayerOff)] ?? null)
@@ -222,7 +222,7 @@ class FifaApi
     {
         $goal = new Goal();
         $goal
-            ->setId(intval($goalInfo->IdGoal))
+            ->setId($goalInfo->IdGoal)
             ->setMatchTime($goalInfo->Minute)
             ->setPlayer($players[intval($goalInfo->IdPlayer)] ?? null)
             ->setGoal(intval($goalInfo->Type))
@@ -324,34 +324,30 @@ class FifaApi
     {
         $matchInfo = $this->request("{$this->baseApiUrl}live/football/{$match->getCompetitionId()}/{$match->getSeasonId()}/{$match->getStageId()}/{$match->getId()}?language={$this->language}");
 
-        $bookingIds = [];
-        $substitutionIds = [];
-        $goalIds = [];
+        $eventHashes = [];
         foreach ($match->getEvents() as $event) {
-            if ($event instanceof Goal) {
-                $goalIds[] = $event->getId();
-            } elseif ($event instanceof Substitution) {
-                $substitutionIds[] = $event->getId();
-            } elseif ($event instanceof Booking) {
-                $bookingIds[] = $event->getId();
-            }
+            /* @var Event $event */
+            $eventHashes[] = get_class($event).$event->getId().($event->getPlayer() ? $event->getPlayer()->getId() : null).$event->getMatchTime();
         }
 
         $newEvents = [];
         foreach (array_merge($matchInfo->HomeTeam->Bookings, $matchInfo->AwayTeam->Bookings) as $bookingInfo) {
-            if (in_array(intval($bookingInfo->IdEvent), $bookingIds)) {
+            $hash = "JantaoDev\\Model\\Event\\Booking{$bookingInfo->IdEvent}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
+            if (in_array($hash, $eventHashes)) {
                 continue;
             }
             $newEvents[] = $this->extractBookingEvent($bookingInfo, $match->getPlayers());
         }
         foreach (array_merge($matchInfo->HomeTeam->Substitutions, $matchInfo->AwayTeam->Substitutions) as $substitutionInfo) {
-            if (in_array(intval($substitutionInfo->IdEvent), $substitutionIds)) {
+            $hash = "JantaoDev\\Model\\Event\\Substitution{$bookingInfo->IdEvent}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
+            if (in_array($hash, $eventHashes)) {
                 continue;
             }
             $newEvents[] = $this->extractSubstitutionEvent($substitutionInfo, $match->getPlayers());
         }
         foreach (array_merge($matchInfo->HomeTeam->Goals, $matchInfo->AwayTeam->Goals) as $goalInfo) {
-            if (in_array(intval($goalInfo->IdGoal), $goalIds)) {
+            $hash = "JantaoDev\\Model\\Event\\Goal{$bookingInfo->IdGoal}{$bookingInfo->IdPlayer}{$bookingInfo->Minute}";
+            if (in_array($hash, $eventHashes)) {
                 continue;
             }
             $newEvents[] = $this->extractGoalEvent($goalInfo, $match->getPlayers());

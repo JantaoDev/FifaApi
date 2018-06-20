@@ -16,12 +16,12 @@ abstract class Event
 {
 
     /**
-     * @var int Event ID
+     * @var int|null Event ID
      */
     protected $id;
 
     /**
-     * @var Player Player
+     * @var Player|null Player
      */
     protected $player;
 
@@ -32,7 +32,7 @@ abstract class Event
 
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getId()
     {
@@ -40,7 +40,7 @@ abstract class Event
     }
 
     /**
-     * @param int $id
+     * @param int|null $id
      * @return $this
      */
     public function setId($id)
@@ -50,7 +50,7 @@ abstract class Event
     }
 
     /**
-     * @return Player
+     * @return Player|null
      */
     public function getPlayer()
     {
@@ -58,7 +58,7 @@ abstract class Event
     }
 
     /**
-     * @param Player $player
+     * @param Player|null $player
      * @return $this
      */
     public function setPlayer($player)
