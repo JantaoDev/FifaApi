@@ -289,9 +289,9 @@ class FifaApi
             ->setStageId(intval($matchInfo->IdStage))
             ->setCompetitionId(intval($matchInfo->IdCompetition))
             ->setAwayTeam($awayTeam)
-            ->setAwayTeamScore(intval($matchInfo->AggregateAwayTeamScore))
+            ->setAwayTeamScore(intval($matchInfo->AwayTeam->Score))
             ->setHomeTeam($homeTeam)
-            ->setHomeTeamScore(intval($matchInfo->AggregateHomeTeamScore))
+            ->setHomeTeamScore(intval($matchInfo->HomeTeam->Score))
             ->setDate(new \DateTime($matchInfo->Date))
             ->setLocalDate(new \DateTime($matchInfo->LocalDate))
             ->setStadium($this->extractLocalizedString($matchInfo->Stadium->Name))
@@ -358,8 +358,8 @@ class FifaApi
         $this->sortEvents($events);
 
         $match
-            ->setAwayTeamScore(intval($matchInfo->AggregateAwayTeamScore))
-            ->setHomeTeamScore(intval($matchInfo->AggregateHomeTeamScore))
+            ->setAwayTeamScore(intval($matchInfo->AwayTeam->Score))
+            ->setHomeTeamScore(intval($matchInfo->HomeTeam->Score))
             ->setStatus(intval($matchInfo->MatchStatus))
             ->setEvents($events)
             ->setMatchTime($matchInfo->MatchTime)
